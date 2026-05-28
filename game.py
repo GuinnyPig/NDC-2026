@@ -120,8 +120,13 @@ class tower_defense:
         # Import des images fixes reliés aux endroits.
         pyxel.images[CAVE_1[0]].load(CAVE_1[1], CAVE_1[2], "cave_1.png")
         pyxel.images[CAVE_2[0]].load(CAVE_2[1], CAVE_2[2], "cave_2.png")
+        pyxel.images[PATH[0]].load(PATH[1], PATH[2], "path_1.png")
+        pyxel.images[PATH_2[0]].load(PATH_2[1], PATH_2[2], "path_2.png")
+        pyxel.images[PATH_3[0]].load(PATH_3[1], PATH_3[2], "path_3.png")
+        pyxel.images[PATH_4[0]].load(PATH_4[1], PATH_4[2], "path_4.png")
         pyxel.images[BAKERY[0]].load(BAKERY[1], BAKERY[2], "bakery.png")
         pyxel.images[ZOMBIE[0]].load(ZOMBIE[1], ZOMBIE[2], "zombie.png")
+ 
         while test_person[0] != 7 or test_person[1] != 7:
             if test_person[1] == 7:
                 config += 4
