@@ -33,43 +33,48 @@ matrix[6][7] = BAKERY
 test_person = [0, 0]
 zombies = [[0, 0]]
 idx_zombie = 0
-dir_r_or_d = True
+dir_r_or_d = False
 
 config = 0
 
 def priority(case, coef=1):
+    global dir_r_or_d
     if case[1] < 7*coef:
-        if dir_r_or_d:
+        if dir_r_or_d and matrix[case[1]//coef][case[0]//coef] == VOID:
             matrix[case[1]//coef][case[0]//coef] = PATH_2
-        else:
+        elif not dir_r_or_d and matrix[case[1]//coef][case[0]//coef] == VOID:
             matrix[case[1]//coef][case[0]//coef] = PATH
         case[1] += 1
+        dir_r_or_d = False
     elif case[0] < 7*coef:
-        if dir_r_or_d:
+        if dir_r_or_d and matrix[case[1]//coef][case[0]//coef] == VOID:
             matrix[case[1]//coef][case[0]//coef] = PATH_4
-        else:
+        elif not dir_r_or_d and matrix[case[1]//coef][case[0]//coef] == VOID:
             matrix[case[1]//coef][case[0]//coef] = PATH_3
         case[0] += 1
+        dir_r_or_d = False
     return case
 
 def path_finder(case, config, coef=1):
-    global matrix
-    if config == 2 or config == 3 or config == 13 or config == 10 or config == 8:
-        if dir_r_or_d:
+    global matrix, dir_r_or_d
+    if config == 2 or config == 3 or config == 10 or config == 8:
+        if dir_r_or_d and matrix[case[1]//coef][case[0]//coef] == VOID:
             matrix[case[1]//coef][case[0]//coef] = PATH_2
-        else:
+        elif not dir_r_or_d and matrix[case[1]//coef][case[0]//coef] == VOID:
             matrix[case[1]//coef][case[0]//coef] = PATH
         case[1] += 1
-    elif config == 4 or config == 12 or config == 5:
-        if dir_r_or_d:
+        dir_r_or_d = False
+    elif config == 4 or config == 13 or config == 12 or config == 5:
+        if dir_r_or_d and matrix[case[1]//coef][case[0]//coef] == VOID:
             matrix[case[1]//coef][case[0]//coef] = PATH_4
-        else:
+        elif not dir_r_or_d and matrix[case[1]//coef][case[0]//coef] == VOID:
             matrix[case[1]//coef][case[0]//coef] = PATH_3
         case[0] += 1
+        dir_r_or_d = True
     elif config == 6 or config == 7 or config == 14:
         return case
     elif config == 15:
-        zombies.pop(idx_zombie)
+        zombies.pop(0)
     else:
         case = priority(case, coef)
     return case
@@ -127,7 +132,7 @@ class tower_defense:
         pyxel.images[BAKERY[0]].load(BAKERY[1], BAKERY[2], "bakery.png")
         pyxel.images[ZOMBIE[0]].load(ZOMBIE[1], ZOMBIE[2], "zombie.png")
  
-        while test_person[0] != 7 or test_person[1] != 7:
+        while test_person[0] < 7 or test_person[1] < 7:
             if test_person[1] == 7:
                 config += 4
             elif matrix[test_person[1]+1][test_person[0]] == WALL:
@@ -145,6 +150,8 @@ class tower_defense:
             elif matrix[test_person[1]][test_person[0]-1] == WALL:
                 config += 8
             test_person = path_finder(test_person, config)
+            print(test_person)
+            print(config)
             config = 0
 
         pyxel.run(self.update, self.draw)
