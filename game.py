@@ -90,48 +90,23 @@ def path_finder(case, config, coef=1):
 class tower_defense:
     cnt = 1
     def update(self):
-        global towers, matrix
+        global config, matrix, zombies, projectiles, bakery_hp
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
         elif pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and matrix[pyxel.mouse_y//32][pyxel.mouse_x//32] == VOID:
             matrix[pyxel.mouse_y//32][pyxel.mouse_x//32] = TOWER
-
-    def draw(self):
-        global config, bakery_hp, zombies, defeat, projectiles
-        if bakery_hp == 0:
-            defeat = True
-        pyxel.cls(0)
-        if defeat:
-            pyxel.cls(8)
-            return
-
-        # Dessin de la matrice.
-        for y in range(len(matrix)):
-            for x in range(len(matrix[0])):
-                pyxel.blt(x*32, y*32, matrix[y][x][0], matrix[y][x][1], matrix[y][x][2], TILE_SIZE, TILE_SIZE)
-                if matrix[y][x] == TOWER and self.cnt%pyxel.rndi(30, 60) == 0:
-                    if len(zombies) == 0:
-                        break
-                    nearest_zombie = zombies[0]
-                    for zombie in zombies:
-                        if ((zombie[0]-(x*32))**2+(zombie[1]-(y*32))**2)**(1/2) < ((nearest_zombie[0]-(x*32))**2+(nearest_zombie[1]-(y*32))**2)**(1/2):
-                            nearest_zombie = zombie
-                    projectiles.append([x*32, y*32, 8*(x*32 < nearest_zombie[0]*8)-8*(x*32 > nearest_zombie[0]*8), 8*(y*32 < nearest_zombie[1]*8)-8*(y*32 > nearest_zombie[1]*8), 0])
         for projectile in projectiles:
             projectile[4] += 1
-            if len(zombies) == 0:
-                break
-            nearest_zombie = zombies[0]
-            for zombie in zombies:
-                if ((zombie[0]-(x*32))**2+(zombie[1]-(y*32))**2)**(1/2) < ((nearest_zombie[0]-(x*32))**2+(nearest_zombie[1]-(y*32))**2)**(1/2):
-                            nearest_zombie = zombie
-            pyxel.blt(projectile[0], projectile[1], PROJ[0], PROJ[1], PROJ[2], 16, 16)
             projectile[0] += projectile[2]
             projectile[1] += projectile[3]
-            if pyxel.sqrt((nearest_zombie[0]*8-projectile[0])**2+(nearest_zombie[1]*8-projectile[1])**2) <= 100:
-                projectiles.remove(projectile)
-                zombies.remove(nearest_zombie)
-            elif projectile[4] == 120:
+            if len(zombies) == 0:
+                continue
+            for zombie in zombies:
+                if pyxel.sqrt((zombie[0]*4-projectile[0])**2+(zombie[1]*4-projectile[1])**2) <= 16:
+                    projectiles.remove(projectile)
+                    zombies.remove(zombie)
+                    break
+            if projectile[4] == 60:
                 projectiles.remove(projectile)
         for zombie in zombies:
             if zombie[0] != 7*8 or zombie[1] != 7*8:
@@ -152,7 +127,6 @@ class tower_defense:
                 elif matrix[zombie[1]//8][zombie[0]//8-1] == WALL:
                     config += 8
                 zombie = path_finder(zombie, config, 8)
-                pyxel.blt(zombie[0]*4+8, zombie[1]*4+8, ZOMBIE[0], ZOMBIE[1], ZOMBIE[2], 16, 16)
             else:
                 zombies.remove(zombie)
                 bakery_hp -= 10
@@ -161,6 +135,32 @@ class tower_defense:
             zombies.append([0, 0])
             self.cnt = 0
 
+    def draw(self):
+        global config, bakery_hp, zombies, defeat, projectiles
+        if bakery_hp == 0:
+            defeat = True
+        pyxel.cls(0)
+        if defeat:
+            pyxel.cls(8)
+            pyxel.text(100, 100, "Perdu!", 2)
+            return
+
+        # Dessin de la matrice.
+        for y in range(len(matrix)):
+            for x in range(len(matrix[0])):
+                pyxel.blt(x*32, y*32, matrix[y][x][0], matrix[y][x][1], matrix[y][x][2], TILE_SIZE, TILE_SIZE)
+                if matrix[y][x] == TOWER and self.cnt%pyxel.rndi(30, 60) == 0:
+                    if len(zombies) == 0:
+                        break
+                    nearest_zombie = zombies[0]
+                    for zombie in zombies:
+                        if ((zombie[0]-(x*32))**2+(zombie[1]-(y*32))**2)**(1/2) < ((nearest_zombie[0]-(x*32))**2+(nearest_zombie[1]-(y*32))**2)**(1/2):
+                            nearest_zombie = zombie
+                    projectiles.append([x*32, y*32, 6*(x*32 < nearest_zombie[0]*8)-6*(x*32 > nearest_zombie[0]*8), 6*(y*32 < nearest_zombie[1]*8)-6*(y*32 > nearest_zombie[1]*8), 0])
+        for zombie in zombies:
+            pyxel.blt(zombie[0]*4+8, zombie[1]*4+8, ZOMBIE[0], ZOMBIE[1], ZOMBIE[2], 16, 16)
+        for projectile in projectiles:
+            pyxel.blt(projectile[0], projectile[1], PROJ[0], PROJ[1], PROJ[2], 16, 16)
     def __init__(self):
         global test_person, config
         pyxel.init(SCREEN_SIZE, SCREEN_SIZE, "Zombies to Bakery")
