@@ -18,7 +18,7 @@ PATH_3 = [0, 96, 64]
 PATH_4 = [0, 96, 96]
 PATH_5 = [0, 96, 128]
 
-# Éléments principaux du chemin et personnages.
+# Définition des variables du jeu.
 test_person = [0, 0]
 config = 0
 dir_r_or_d = False
@@ -37,13 +37,14 @@ money = 10
 #### Numéro de la banque d'images, Abscisse et Ordonnée dans l'image.
 matrix = [[VOID for line in range(8)] for column in range(8)]
 
-# Définition des éléments fondamentaux du terrain
+# Définition des éléments fondamentaux du terrain.
 matrix[0][0] = CAVE_1
 matrix[1][0] = CAVE_2
 matrix[6][7] = BAKERY
 matrix[7][7] = PATH_5
 
-
+# Fonction déplaçant un objet selon
+# l'importance de chaque direction.
 def priority(case, coef=1):
     global dir_r_or_d
     if case[1] < 7*coef:
@@ -62,6 +63,8 @@ def priority(case, coef=1):
         dir_r_or_d = False
     return case
 
+# Fonction liée au déplacement d'un objet selon
+# les alentours de ce dernier.
 def path_finder(case, config, coef=1):
     global matrix, dir_r_or_d, idx_zombie, zombies
     if config == 2 or config == 3 or config == 10 or config == 8:
@@ -86,6 +89,7 @@ def path_finder(case, config, coef=1):
         case = priority(case, coef)
     return case
 
+# Classe de l'entièreté du jeu
 class tower_defense:
     cnt = 1
     def update(self):
@@ -110,7 +114,13 @@ class tower_defense:
                     break
             if projectile[4] == 60:
                 projectiles.remove(projectile)
+
+        # Déplacement de chaque zombie sur le chemin.
         for zombie in zombies:
+            # La configuration des alentours se fait selon
+            # une valeur unique basée sur les 4 directions
+            # fondamentales numérotées ainsi:
+            ### 1: Bas; 2: Droite; 4: Haut; 8: Gauche.
             if zombie[0] != 7*8 or zombie[1] != 7*8:
                 if zombie[1] == 7*8:
                     config += 4
@@ -132,6 +142,7 @@ class tower_defense:
             else:
                 zombies.remove(zombie)
                 damage += 10
+
         self.cnt += 1
         if self.cnt == 60:
             zombies.append([0, 0])
@@ -139,11 +150,13 @@ class tower_defense:
 
     def draw(self):
         global config, damage, zombies, defeat, projectiles, score
+
         if damage == 100:
             pyxel.stop(0)
             pyxel.play(0, 2, loop= True)
             defeat = True
             damage = 0
+
         pyxel.cls(0)
         if defeat:
             pyxel.cls(8)
@@ -163,10 +176,13 @@ class tower_defense:
                             nearest_zombie = zombie
                     projectiles.append([x*32, y*32, 6*(x*32 < nearest_zombie[0]*8)-6*(x*32 > nearest_zombie[0]*8), 6*(y*32 < nearest_zombie[1]*8)-6*(y*32 > nearest_zombie[1]*8), 0])
                     pyxel.play(1, 1)
+
         for zombie in zombies:
             pyxel.blt(zombie[0]*4+8, zombie[1]*4+8, ZOMBIE[0], ZOMBIE[1], ZOMBIE[2], 16, 16)
+
         for projectile in projectiles:
             pyxel.blt(projectile[0], projectile[1], PROJ[0], PROJ[1], PROJ[2], 16, 16)
+
         pyxel.text(200, 0, "Score: "+str(score), 1)
         pyxel.text(32, 0, "Money: "+str(money), 10)
         pyxel.text(150, 192, "Damages: "+str(bakery_damage), 14)
@@ -196,6 +212,7 @@ class tower_defense:
 
         # Installation du chemin par défaut.
         while test_person[0] < 7 or test_person[1] < 7:
+            # Idem que pour le déplacement des zombies.
             if test_person[1] == 7:
                 config += 4
             elif matrix[test_person[1]+1][test_person[0]] == WALL:
@@ -214,6 +231,7 @@ class tower_defense:
                 config += 8
             test_person = path_finder(test_person, config)
             config = 0
+
         pyxel.mouse(True)
         pyxel.run(self.update, self.draw)
 
