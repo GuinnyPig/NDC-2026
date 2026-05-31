@@ -144,7 +144,10 @@ class tower_defense:
     def draw(self):
         global config, bakery_damage, zombies, defeat, projectiles, score
         if bakery_damage == 100:
+            pyxel.stop(0)
+            pyxel.play(0, 2, loop= True)
             defeat = True
+            bakery_damage = 0
         pyxel.cls(0)
         if defeat:
             pyxel.cls(8)
@@ -163,11 +166,12 @@ class tower_defense:
                         if pyxel.sqrt((zombie[0]*4+8-(x*32))**2+(zombie[1]*4+8-(y*32))**2) < pyxel.sqrt((nearest_zombie[0]*4+8-(x*32))**2+(nearest_zombie[1]*4+8-(y*32))**2):
                             nearest_zombie = zombie
                     projectiles.append([x*32, y*32, 6*(x*32 < nearest_zombie[0]*8)-6*(x*32 > nearest_zombie[0]*8), 6*(y*32 < nearest_zombie[1]*8)-6*(y*32 > nearest_zombie[1]*8), 0])
+                    pyxel.play(1, 1)
         for zombie in zombies:
             pyxel.blt(zombie[0]*4+8, zombie[1]*4+8, ZOMBIE[0], ZOMBIE[1], ZOMBIE[2], 16, 16)
         for projectile in projectiles:
             pyxel.blt(projectile[0], projectile[1], PROJ[0], PROJ[1], PROJ[2], 16, 16)
-        pyxel.text(220, 0, "Score: "+str(score), 1)
+        pyxel.text(200, 0, "Score: "+str(score), 1)
         pyxel.text(32, 0, "Money: "+str(money), 10)
         pyxel.text(150, 192, "Damages: "+str(bakery_damage), 14)
 
@@ -188,6 +192,8 @@ class tower_defense:
         pyxel.images[TOWER[0]].load(TOWER[1], TOWER[2], "tower.png")
         pyxel.images[PROJ[0]].load(PROJ[1], PROJ[2], "bowl.png")
         pyxel.sounds[0].set_notes("A1B1C1D1E1F1G1")
+        pyxel.sounds[1].set_notes("E4")
+        pyxel.sounds[2].set_notes("D#2RRRC#2RRR")
         pyxel.play(0, 0, loop= True)
  
         while test_person[0] < 7 or test_person[1] < 7:
