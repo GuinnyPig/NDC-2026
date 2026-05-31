@@ -1,52 +1,48 @@
 import pyxel
-from math import *
 
-# Définitions de la configuration du jeu.
+# Définitions des constantes liées au terrain.
 SCREEN_SIZE = 256
 TILE_SIZE = 32
 
 VOID = [0, 0, 0]
-
 CAVE_1 = [0, 32, 0]
 CAVE_2 = [0, 32, 32]
 BAKERY = [0, 64, 0]
-
 TOWER = [0, 160, 0]
-
 ZOMBIE = [0, 128, 0]
-
 WALL = [0, 96, 160]
 PROJ = [0, 128, 32]
-
 PATH = [0, 96, 0]
 PATH_2 = [0, 96, 32]
 PATH_3 = [0, 96, 64]
 PATH_4 = [0, 96, 96]
 PATH_5 = [0, 96, 128]
 
-defeat = False
+# Éléments principaux du chemin et personnages.
+test_person = [0, 0]
+config = 0
+dir_r_or_d = False
 
-bakery_damage = 0
+zombies = []
+projectiles = []
+idx_zombie = 0
+
+defeat = False
+damage = 0
 score = 0
 money = 10
 
-# 'matrix' ici représente le terrain de jeu. C'est une matrice
-# de 8x8 avec chaque case contenant un tableau de 3 nombres:
+# Définition du terrain de jeu. C'est une matrice de 8x8
+# avec chaque case contenant un tableau de 3 nombres:
 #### Numéro de la banque d'images, Abscisse et Ordonnée dans l'image.
 matrix = [[VOID for line in range(8)] for column in range(8)]
 
+# Définition des éléments fondamentaux du terrain
 matrix[0][0] = CAVE_1
 matrix[1][0] = CAVE_2
 matrix[6][7] = BAKERY
 matrix[7][7] = PATH_5
 
-test_person = [0, 0]
-zombies = [[0, 0]]
-projectiles = []
-idx_zombie = 0
-dir_r_or_d = False
-
-config = 0
 
 def priority(case, coef=1):
     global dir_r_or_d
@@ -93,7 +89,7 @@ def path_finder(case, config, coef=1):
 class tower_defense:
     cnt = 1
     def update(self):
-        global config, matrix, zombies, projectiles, bakery_damage, score, money
+        global config, matrix, zombies, projectiles, damage, score, money
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
         elif pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and matrix[pyxel.mouse_y//32][pyxel.mouse_x//32] == VOID and money >= 10:
@@ -135,19 +131,19 @@ class tower_defense:
                 zombie = path_finder(zombie, config, 8)
             else:
                 zombies.remove(zombie)
-                bakery_damage += 10
+                damage += 10
         self.cnt += 1
         if self.cnt == 60:
             zombies.append([0, 0])
             self.cnt = 0
 
     def draw(self):
-        global config, bakery_damage, zombies, defeat, projectiles, score
-        if bakery_damage == 100:
+        global config, damage, zombies, defeat, projectiles, score
+        if damage == 100:
             pyxel.stop(0)
             pyxel.play(0, 2, loop= True)
             defeat = True
-            bakery_damage = 0
+            damage = 0
         pyxel.cls(0)
         if defeat:
             pyxel.cls(8)
@@ -191,11 +187,14 @@ class tower_defense:
         pyxel.images[ZOMBIE[0]].load(ZOMBIE[1], ZOMBIE[2], "zombie.png")
         pyxel.images[TOWER[0]].load(TOWER[1], TOWER[2], "tower.png")
         pyxel.images[PROJ[0]].load(PROJ[1], PROJ[2], "bowl.png")
+
+        # Import des effets sonores.
         pyxel.sounds[0].set_notes("A1B1C1D1E1F1G1")
         pyxel.sounds[1].set_notes("E4")
         pyxel.sounds[2].set_notes("D#2RRRC#2RRR")
         pyxel.play(0, 0, loop= True)
- 
+
+        # Installation du chemin par défaut.
         while test_person[0] < 7 or test_person[1] < 7:
             if test_person[1] == 7:
                 config += 4
