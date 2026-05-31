@@ -26,7 +26,10 @@ PATH_5 = [0, 96, 128]
 
 defeat = False
 
-bakery_hp = 100
+bakery_damage = 0
+score = 0
+money = 10
+
 # 'matrix' ici représente le terrain de jeu. C'est une matrice
 # de 8x8 avec chaque case contenant un tableau de 3 nombres:
 #### Numéro de la banque d'images, Abscisse et Ordonnée dans l'image.
@@ -90,10 +93,11 @@ def path_finder(case, config, coef=1):
 class tower_defense:
     cnt = 1
     def update(self):
-        global config, matrix, zombies, projectiles, bakery_hp
+        global config, matrix, zombies, projectiles, bakery_damage, score, money
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
-        elif pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and matrix[pyxel.mouse_y//32][pyxel.mouse_x//32] == VOID:
+        elif pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and matrix[pyxel.mouse_y//32][pyxel.mouse_x//32] == VOID and money >= 10:
+            money -= 10
             matrix[pyxel.mouse_y//32][pyxel.mouse_x//32] = TOWER
         for projectile in projectiles:
             projectile[4] += 1
@@ -102,9 +106,11 @@ class tower_defense:
             if len(zombies) == 0:
                 continue
             for zombie in zombies:
-                if pyxel.sqrt((zombie[0]*4-projectile[0])**2+(zombie[1]*4-projectile[1])**2) <= 16:
+                if pyxel.sqrt((zombie[0]*4+8-projectile[0])**2+(zombie[1]*4+8-projectile[1])**2) <= 16:
                     projectiles.remove(projectile)
                     zombies.remove(zombie)
+                    score += 10
+                    money += 2
                     break
             if projectile[4] == 60:
                 projectiles.remove(projectile)
@@ -129,38 +135,42 @@ class tower_defense:
                 zombie = path_finder(zombie, config, 8)
             else:
                 zombies.remove(zombie)
-                bakery_hp -= 10
+                bakery_damage += 10
         self.cnt += 1
         if self.cnt == 60:
             zombies.append([0, 0])
             self.cnt = 0
 
     def draw(self):
-        global config, bakery_hp, zombies, defeat, projectiles
-        if bakery_hp == 0:
+        global config, bakery_damage, zombies, defeat, projectiles, score
+        if bakery_damage == 100:
             defeat = True
         pyxel.cls(0)
         if defeat:
             pyxel.cls(8)
-            pyxel.text(100, 100, "Perdu!", 2)
+            pyxel.text(100, 100, "You lost!", 2)
             return
 
         # Dessin de la matrice.
         for y in range(len(matrix)):
             for x in range(len(matrix[0])):
                 pyxel.blt(x*32, y*32, matrix[y][x][0], matrix[y][x][1], matrix[y][x][2], TILE_SIZE, TILE_SIZE)
-                if matrix[y][x] == TOWER and self.cnt%pyxel.rndi(30, 60) == 0:
+                if matrix[y][x] == TOWER and self.cnt%pyxel.rndi(15, 60) == 0:
                     if len(zombies) == 0:
                         break
                     nearest_zombie = zombies[0]
                     for zombie in zombies:
-                        if ((zombie[0]-(x*32))**2+(zombie[1]-(y*32))**2)**(1/2) < ((nearest_zombie[0]-(x*32))**2+(nearest_zombie[1]-(y*32))**2)**(1/2):
+                        if pyxel.sqrt((zombie[0]*4+8-(x*32))**2+(zombie[1]*4+8-(y*32))**2) < pyxel.sqrt((nearest_zombie[0]*4+8-(x*32))**2+(nearest_zombie[1]*4+8-(y*32))**2):
                             nearest_zombie = zombie
                     projectiles.append([x*32, y*32, 6*(x*32 < nearest_zombie[0]*8)-6*(x*32 > nearest_zombie[0]*8), 6*(y*32 < nearest_zombie[1]*8)-6*(y*32 > nearest_zombie[1]*8), 0])
         for zombie in zombies:
             pyxel.blt(zombie[0]*4+8, zombie[1]*4+8, ZOMBIE[0], ZOMBIE[1], ZOMBIE[2], 16, 16)
         for projectile in projectiles:
             pyxel.blt(projectile[0], projectile[1], PROJ[0], PROJ[1], PROJ[2], 16, 16)
+        pyxel.text(220, 0, "Score: "+str(score), 1)
+        pyxel.text(32, 0, "Money: "+str(money), 10)
+        pyxel.text(150, 192, "Damages: "+str(bakery_damage), 14)
+
     def __init__(self):
         global test_person, config
         pyxel.init(SCREEN_SIZE, SCREEN_SIZE, "Zombies to Bakery")
