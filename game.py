@@ -187,6 +187,8 @@ class tower_defense:
         pyxel.images[ZOMBIE[0]].load(ZOMBIE[1], ZOMBIE[2], "zombie.png")
         pyxel.images[TOWER[0]].load(TOWER[1], TOWER[2], "tower.png")
         pyxel.images[PROJ[0]].load(PROJ[1], PROJ[2], "bowl.png")
+        pyxel.sounds[0].set_notes("A1B1C1D1E1F1G1")
+        pyxel.play(0, 0, loop= True)
  
         while test_person[0] < 7 or test_person[1] < 7:
             if test_person[1] == 7:
