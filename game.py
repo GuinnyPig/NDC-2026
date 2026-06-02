@@ -1,6 +1,6 @@
 import pyxel
 
-# Définitions des constantes liées au terrain.
+# Définitions de la configuration du jeu.
 SCREEN_SIZE = 256
 TILE_SIZE = 32
 
@@ -19,22 +19,22 @@ PATH_4 = [0, 96, 96]
 PATH_5 = [0, 96, 128]
 
 # Définition des variables du jeu.
-test_person = [0, 0]
-config = 0
-dir_r_or_d = False
+defeat = False
+bakery_damage = 0
+score = 0
+money = 10
 
 zombies = []
 projectiles = []
 idx_zombie = 0
 
-defeat = False
-damage = 0
-score = 0
-money = 10
+test_person = [0, 0]
+config = 0
+dir_r_or_d = False
 
 # Définition du terrain de jeu. C'est une matrice de 8x8
 # avec chaque case contenant un tableau de 3 nombres:
-#### Numéro de la banque d'images, Abscisse et Ordonnée dans l'image.
+### Numéro de la banque d'images, Abscisse et Ordonnée dans l'image.
 matrix = [[VOID for line in range(8)] for column in range(8)]
 
 # Définition des éléments fondamentaux du terrain.
@@ -93,10 +93,10 @@ def path_finder(case, config, coef=1):
 class tower_defense:
     cnt = 1
     def update(self):
-        global config, matrix, zombies, projectiles, damage, score, money
+        global config, matrix, zombies, projectiles, bakery_damage, score, money
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
-        elif pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and matrix[pyxel.mouse_y//32][pyxel.mouse_x//32] == VOID and money >= 10:
+        elif pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and matrix[pyxel.mouse_y//32][pyxel.mouse_x//32] == VOID and money >= 10 and pyxel.sqrt((pyxel.mouse_x)**2+(pyxel.mouse_y)**2) > 128:
             money -= 10
             matrix[pyxel.mouse_y//32][pyxel.mouse_x//32] = TOWER
         for projectile in projectiles:
@@ -105,6 +105,8 @@ class tower_defense:
             projectile[1] += projectile[3]
             if len(zombies) == 0:
                 continue
+
+            # Recherche d'un zombie touché par un projectile.
             for zombie in zombies:
                 if pyxel.sqrt((zombie[0]*4+8-projectile[0])**2+(zombie[1]*4+8-projectile[1])**2) <= 16:
                     projectiles.remove(projectile)
@@ -114,7 +116,6 @@ class tower_defense:
                     break
             if projectile[4] == 60:
                 projectiles.remove(projectile)
-
         # Déplacement de chaque zombie sur le chemin.
         for zombie in zombies:
             # La configuration des alentours se fait selon
@@ -141,22 +142,19 @@ class tower_defense:
                 zombie = path_finder(zombie, config, 8)
             else:
                 zombies.remove(zombie)
-                damage += 10
-
+                bakery_damage += 10
         self.cnt += 1
         if self.cnt == 60:
             zombies.append([0, 0])
             self.cnt = 0
 
     def draw(self):
-        global config, damage, zombies, defeat, projectiles, score
-
-        if damage == 100:
+        global config, bakery_damage, zombies, defeat, projectiles, score
+        if bakery_damage == 100:
             pyxel.stop(0)
             pyxel.play(0, 2, loop= True)
             defeat = True
-            damage = 0
-
+            bakery_damage = 0
         pyxel.cls(0)
         if defeat:
             pyxel.cls(8)
@@ -176,13 +174,10 @@ class tower_defense:
                             nearest_zombie = zombie
                     projectiles.append([x*32, y*32, 6*(x*32 < nearest_zombie[0]*8)-6*(x*32 > nearest_zombie[0]*8), 6*(y*32 < nearest_zombie[1]*8)-6*(y*32 > nearest_zombie[1]*8), 0])
                     pyxel.play(1, 1)
-
         for zombie in zombies:
             pyxel.blt(zombie[0]*4+8, zombie[1]*4+8, ZOMBIE[0], ZOMBIE[1], ZOMBIE[2], 16, 16)
-
         for projectile in projectiles:
             pyxel.blt(projectile[0], projectile[1], PROJ[0], PROJ[1], PROJ[2], 16, 16)
-
         pyxel.text(200, 0, "Score: "+str(score), 1)
         pyxel.text(32, 0, "Money: "+str(money), 10)
         pyxel.text(150, 192, "Damages: "+str(bakery_damage), 14)
@@ -206,11 +201,12 @@ class tower_defense:
 
         # Import des effets sonores.
         pyxel.sounds[0].set_notes("A1B1C1D1E1F1G1")
-        pyxel.sounds[1].set_notes("E4")
+        pyxel.sounds[1].set_notes("A4")
         pyxel.sounds[2].set_notes("D#2RRRC#2RRR")
+
         pyxel.play(0, 0, loop= True)
 
-        # Installation du chemin par défaut.
+        # Définition du chemin par défaut.
         while test_person[0] < 7 or test_person[1] < 7:
             # Idem que pour le déplacement des zombies.
             if test_person[1] == 7:
@@ -231,7 +227,6 @@ class tower_defense:
                 config += 8
             test_person = path_finder(test_person, config)
             config = 0
-
         pyxel.mouse(True)
         pyxel.run(self.update, self.draw)
 
